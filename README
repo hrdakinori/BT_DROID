@@ -1,0 +1,8 @@
+Target : PIC24FJ64GB002
+
+Bluetooth Protocol Stack : lwalkera/lwBT - GitHub
+
+Bluetooth Protocol : SPP
+
+Servomotor : GWS PIC+F/BB/F
+
