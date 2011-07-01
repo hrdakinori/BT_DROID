@@ -62,7 +62,6 @@ BC/KO       25-Dec-2007 First release
 #include "USB/usb.h"
 #include "USB/usb_host_generic.h"
 
-#define DEBUG_MODE
 #ifdef DEBUG_MODE
     #include "uart2.h"
 #endif
@@ -1026,7 +1025,9 @@ BYTE USBHostGenericWrite2( BYTE deviceAddress, void *buffer, DWORD length )
     RetVal = USBHostWrite( deviceAddress, USB_OUT_EP|USB_GENERIC_EP2, (BYTE *)buffer, length );
     if (RetVal != USB_SUCCESS)
     {
+		#ifdef DEBUG_MODE
 		UART2Printf( "Write2: err %x \r\n",RetVal );	
+		#endif
         gc_DevData.flags.tx2Busy = 0;    // Clear flag to allow re-try
 	    return RetVal;
     }

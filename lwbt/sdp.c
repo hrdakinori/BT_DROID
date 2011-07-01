@@ -576,8 +576,8 @@ err_t sdp_service_search_rsp(struct l2cap_pcb *pcb, struct pbuf *p, struct sdp_h
 //	rsphdr->pdu = SDP_SSR_PDU;
 //	rsphdr->id = reqhdr->id;
 	((u8_t*)q->payload)[0] = SDP_SSR_PDU;
-	((u8_t*)q->payload)[1] = (u8_t)(reqhdr->id & 0x00ff);
-	((u8_t*)q->payload)[2] = (u8_t)(reqhdr->id & 0xff00) >> 8;
+	((u8_t*)q->payload)[1] = (reqhdr->id & 0x00ff);
+	((u8_t*)q->payload)[2] = (reqhdr->id & 0xff00) >> 8;
 
 	for(record = sdp_server_records; record != NULL; record = record->next) {
 		/* Check if service search pattern matches record */
@@ -603,14 +603,19 @@ err_t sdp_service_search_rsp(struct l2cap_pcb *pcb, struct pbuf *p, struct sdp_h
 
 	/* Add paramenter length to header */
 //	rsphdr->len = htons(q->tot_len - SDP_PDUHDR_LEN);
-	((u8_t*)q->payload)[3] = (u8_t)(htons(q->tot_len - SDP_PDUHDR_LEN) & 0x00ff);
-	((u8_t*)q->payload)[4] = (u8_t)(htons(q->tot_len - SDP_PDUHDR_LEN) & 0xff00) >> 8;
+	((u8_t*)q->payload)[3] = (htons(q->tot_len - SDP_PDUHDR_LEN) & 0x00ff);
+	((u8_t*)q->payload)[4] = (htons(q->tot_len - SDP_PDUHDR_LEN) & 0xff00) >> 8;
 
 	/* Add total service record count to packet */
-	*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN)) = htons(tot_src);
+//	*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN)) = htons(tot_src);
+	((u8_t*)q->payload)[SDP_PDUHDR_LEN]     = (htons(tot_src) & 0x00ff);
+	((u8_t*)q->payload)[SDP_PDUHDR_LEN + 1] = (htons(tot_src) & 0xff00) >> 8;
+
 
 	/* Add current service record count to packet */
-	*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN + 2)) = htons(curr_src);
+//	*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN + 2)) = htons(curr_src);
+	((u8_t*)q->payload)[SDP_PDUHDR_LEN + 2] = (htons(curr_src) & 0x00ff);
+	((u8_t*)q->payload)[SDP_PDUHDR_LEN + 3] = (htons(curr_src) & 0xff00) >> 8;
 
 
 	{
@@ -637,41 +642,51 @@ err_t sdp_service_search_rsp(struct l2cap_pcb *pcb, struct pbuf *p, struct sdp_h
 err_t sdp_service_attrib_rsp(struct l2cap_pcb *pcb, struct pbuf *p, struct sdp_hdr *reqhdr)
 {
 	struct sdp_record *record;
-	struct sdp_hdr *rsphdr;
+//	struct sdp_hdr *rsphdr;
 
 	struct pbuf *q;
 	struct pbuf *r;
 
 	u16_t max_attribl_bc = 0; /* Maximum attribute list byte count */
+    u32_t hdl;
 
 	err_t ret;
 
+	hdl = (u32_t)(((u8_t*)p->payload)[0]) |((u32_t)(((u8_t*)p->payload)[1]) << 8)| ((u32_t)(((u8_t*)p->payload)[2]) << 16) | ((u32_t)(((u8_t*)p->payload)[3]) << 24);
+
 	/* Find record */
 	for(record = sdp_server_records; record != NULL; record = record->next) {
-		if(record->hdl == ntohl(*((u32_t *)p->payload))) {
+		if(record->hdl == ntohl(hdl)) {
 			break;
 		}
 	} 
 	if(record != NULL) { 
 		/* Get maximum attribute byte count */
-		max_attribl_bc = ntohs(((u16_t *)p->payload)[2]); 
+		max_attribl_bc = ntohs(WORDCAST(((u8_t*)p->payload)[2])); 
 
 		/* Allocate rsp packet header + Attribute list count */
 		q  = pbuf_alloc(PBUF_RAW, SDP_PDUHDR_LEN+2, PBUF_RAM);
-		rsphdr = q->payload;
-		rsphdr->pdu = SDP_SAR_PDU;
-		rsphdr->id = reqhdr->id;
+//		rsphdr = q->payload;
+//		rsphdr->pdu = SDP_SAR_PDU;
+//		rsphdr->id = reqhdr->id;
+	((u8_t*)q->payload)[0] = SDP_SAR_PDU;
+	((u8_t*)q->payload)[1] = (reqhdr->id & 0x00ff);
+	((u8_t*)q->payload)[2] = (reqhdr->id & 0xff00) >> 8;
 
 		/* Search for attributes and add them to a pbuf */
 		pbuf_header(p, -6);
 		r = sdp_attribute_search(max_attribl_bc, p, record);
 		if(r != NULL) {
 			/* Add attribute list byte count length to header */
-			*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN)) = htons(r->tot_len);
+//			*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN)) = htons(r->tot_len);
+			((u8_t*)q->payload)[SDP_PDUHDR_LEN]     = (htons(r->tot_len) & 0x00ff);
+			((u8_t*)q->payload)[SDP_PDUHDR_LEN + 1] = (htons(r->tot_len) & 0xff00) >> 8;
 			pbuf_chain(q, r); /* Chain attribute id list for service to response packet */
 			pbuf_free(r);
 		} else {
-			*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN)) = 0;
+//			*((u16_t *)(((u8_t *)q->payload) + SDP_PDUHDR_LEN)) = 0;
+			((u8_t*)q->payload)[SDP_PDUHDR_LEN]     = 0;
+			((u8_t*)q->payload)[SDP_PDUHDR_LEN + 1] = 0;
 		}
 
 		/* Add continuation state to packet */
@@ -681,7 +696,9 @@ err_t sdp_service_attrib_rsp(struct l2cap_pcb *pcb, struct pbuf *p, struct sdp_h
 		pbuf_free(r);
 
 		/* Add paramenter length to header */
-		rsphdr->len = htons(q->tot_len - SDP_PDUHDR_LEN);
+//		rsphdr->len = htons(q->tot_len - SDP_PDUHDR_LEN);
+		((u8_t*)q->payload)[3] = (htons(q->tot_len - SDP_PDUHDR_LEN) & 0x00ff);
+		((u8_t*)q->payload)[4] = (htons(q->tot_len - SDP_PDUHDR_LEN) & 0xff00) >> 8;
 
 		{
 			u16_t i;

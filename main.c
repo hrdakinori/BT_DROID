@@ -19,7 +19,7 @@ Device demo.
 Software License Agreement
 
 The software supplied herewith by Microchip Technology Incorporated
-(the ìCompanyÅE for its PICmicroÆ Microcontroller is intended and
+(the "Company") for its PICmicro(R) Microcontroller is intended and
 supplied to you, the Companyís customer, for use solely and
 exclusively on Microchip PICmicro Microcontroller products. The
 software is owned by the Company and/or its supplier, and is
@@ -64,7 +64,8 @@ CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
 #include "lwip/sys.h"
 #include "lwip/stats.h"
 
-#define DEBUG_MODE
+//DEBUG_MODE 
+//LWIP_DEBUG
 
 // *****************************************************************************
 // *****************************************************************************
@@ -101,7 +102,7 @@ CONSEQUENTIAL DAMAGES, FOR ANY REASON WHATSOEVER.
         _CONFIG4(DSWDTPS_DSWDTPS3 & DSWDTOSC_LPRC & RTCOSC_SOSC & DSBOREN_OFF & DSWDTEN_OFF)
     #elif defined(__PIC24FJ64GB002__)
 		 _CONFIG1(WDTPS_PS1 & FWPSA_PR32 & WINDIS_OFF & FWDTEN_OFF & ICS_PGx1 & GWRP_OFF & GCP_OFF & JTAGEN_OFF)
-		 _CONFIG2(POSCMOD_HS & I2C1SEL_PRI & IOL1WAY_OFF & OSCIOFNC_ON & FCKSM_CSDCMD & FNOSC_FRCPLL & PLL96MHZ_ON & PLLDIV_DIV2 & IESO_OFF)
+		 _CONFIG2(POSCMOD_NONE & I2C1SEL_PRI & IOL1WAY_OFF & OSCIOFNC_ON & FCKSM_CSDCMD & FNOSC_FRCPLL & PLL96MHZ_ON & PLLDIV_DIV2 & IESO_OFF)
 		 _CONFIG3(WPFP_WPFP0 & SOSCSEL_IO & WUTSEL_LEG & WPDIS_WPDIS & WPCFG_WPCFGDIS & WPEND_WPENDMEM)
 		 _CONFIG4(DSWDTPS_DSWDTPS3 & DSWDTOSC_LPRC & RTCOSC_SOSC & DSBOREN_OFF & DSWDTEN_OFF)
     #elif defined(__PIC24FJ256GB106__)
